@@ -52,5 +52,8 @@ config.txt
 ### CMake Patch ###
 CMakeUserPresets.json
 
+# Vscode
+.vscode
+
 # External projects
 *-prefix/
