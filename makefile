@@ -13,7 +13,8 @@ SRCS = main.cpp \
        $(SRCDIR)/websocket.cpp \
        $(SRCDIR)/filewatcher.cpp \
        $(SRCDIR)/apihandler.cpp \
-       $(SRCDIR)/server.cpp
+       $(SRCDIR)/httpfilehandler.cpp \
+       $(SRCDIR)/server.cpp 
 
 # Archivos objeto
 OBJECTS = $(SRCS:.cpp=.o)

@@ -1,5 +1,6 @@
 
 #include "../include/server.h"
+#include "../include/httpfilehandler.h"
 #include "../include/log.h"
 #include <winsock2.h>
 #include <iostream>
@@ -74,27 +75,6 @@ void Server::acceptConnections()
     }
 }
 
-std::string Server::getMimeType(const std::string &path)
-{
-    static std::unordered_map<std::string, std::string> types = {
-        {".html", "text/html"},
-        {".css", "text/css"},
-        {".js", "application/javascript"},
-        {".png", "image/png"},
-        {".jpg", "image/jpeg"},
-        {".jpeg", "image/jpeg"},
-        {".gif", "image/gif"},
-        {".svg", "image/svg+xml"},
-        {".ico", "image/x-icon"},
-        {".txt", "text/plain"}};
-
-    size_t dot = path.find_last_of('.');
-    if (dot == std::string::npos)
-        return "application/octet-stream";
-    std::string ext = path.substr(dot);
-    return types.count(ext) ? types[ext] : "application/octet-stream";
-}
-
 std::string Server::getRequestPath(const std::string &req)
 {
     std::istringstream stream(req);
@@ -130,33 +110,5 @@ void Server::handleClient(SOCKET client, sockaddr_in clientAddr)
     std::string path = Server::getRequestPath(request);
     std::string full_path = config.get("document_root", "public") + path;
 
-    std::string body = readFile(full_path);
-    std::string response;
-
-    std::istringstream iss(request);
-    std::string method;
-    iss >> method;
-
-    if (!body.empty())
-    {
-        std::string content_type = getMimeType(full_path);
-        response =
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: " +
-            content_type + "\r\n"
-                           "Content-Length: " +
-            std::to_string(body.size()) + "\r\n"
-                                          "Connection: close\r\n"
-                                          "Server: " +
-            config.get("server_name", "Locally/1.0") + "\r\n"
-                                                       "X-Powered-By: Frankity\r\n"
-                                                       "\r\n" +
-            body;
-            
-        Log::info(std::format("{} {} from {}", method, path, clientIP));
- 
-        send(client, response.c_str(), response.size(), 0);
-        closesocket(client);
-    }
-
+    HttpFileHandler::serveFile(client, full_path, config, clientIP);
 }
