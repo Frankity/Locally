@@ -112,11 +112,11 @@ int main()
             }
         } });
         watcher_thread.detach();
-        Log::info("Live reload habilitado");
+        Log::info("Live reload habilitado por configuración");
     }
     else
     {
-        Log::info("Live reload deshabilitado por configuracion");
+        Log::info("Live reload deshabilitado por configuración");
     }
 
     WSADATA wsa;
@@ -189,6 +189,7 @@ int main()
                        (status_code == 200 ? " OK" : " Not Found") + "\r\n"
                                                                      "Content-Type: application/json\r\n"
                                                                      "Access-Control-Allow-Origin: *\r\n"
+                                                                     "Server: " + config.get("server_name") + "\r\n" 
                                                                      "Content-Length: " +
                        std::to_string(json_response.size()) + "\r\n"
                                                               "\r\n" +
