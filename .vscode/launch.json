@@ -2,30 +2,25 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug C++ (MinGW)",
+            "name": "Depurar locally.exe (GDB + Make)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/locally.exe",
+            "program": "${workspaceFolder}/bin/locally.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "externalConsole": false,
+            "externalConsole": true,
             "MIMode": "gdb",
-            "miDebuggerPath": "gdb.exe",
+            "miDebuggerPath": "gdb.exe", // ⬅️ Ajusta según tu instalación
             "setupCommands": [
                 {
-                    "description": "Enable pretty-printing for gdb",
+                    "description": "Habilitar impresión bonita (pretty printing)",
                     "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                },
-                {
-                    "description": "Set Disassembly Flavor to Intel",
-                    "text": "-gdb-set disassembly-flavor intel",
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "build"
+            "preLaunchTask": "build-makefile"
         }
     ]
 }

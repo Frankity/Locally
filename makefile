@@ -1,23 +1,49 @@
 CXX = g++
-CXXFLAGS = -Wall -std=c++11 -g -O0 -std=gnu++20
-LIBS = -lws2_32 -lwsock32 -lssl -lcrypto 
-SRCDIR = src
+CXXFLAGS = -Wall -std=gnu++20
 INCDIR = include
-SOURCES = main.cpp $(SRCDIR)/config.cpp $(SRCDIR)/log.cpp $(SRCDIR)/utils.cpp $(SRCDIR)/filewatcher.cpp $(SRCDIR)/apihandler.cpp $(SRCDIR)/websocket.cpp
-OBJECTS = $(SOURCES:.cpp=.o)
-TARGET = locally.exe
+LIBS = -lws2_32 -lwsock32 -lssl -lcrypto
+SRCDIR = src
+BINDIR = bin
 
-# Regla para build con debug
-debug: CXXFLAGS += -DDEBUG
+# Archivos fuente
+SRCS = main.cpp \
+       $(SRCDIR)/log.cpp \
+       $(SRCDIR)/config.cpp \
+       $(SRCDIR)/utils.cpp \
+       $(SRCDIR)/websocket.cpp \
+       $(SRCDIR)/filewatcher.cpp \
+       $(SRCDIR)/apihandler.cpp
+
+# Archivos objeto
+OBJECTS = $(SRCS:.cpp=.o)
+
+# Binario
+TARGET = $(BINDIR)/locally.exe
+
+# Build por defecto
+all: debug
+
+# Compilación modo debug
+debug: CXXFLAGS += -g -O0 -DDEBUG
 debug: $(TARGET)
 
-$(TARGET): $(OBJECTS)
-	$(CXX) $(OBJECTS) -o $(TARGET) $(LIBS)
+# Compilación modo release
+release: CXXFLAGS += -O2
+release: $(TARGET)
 
+# Vincula el binario
+$(TARGET): $(OBJECTS)
+	@mkdir -p $(BINDIR)
+	$(CXX) $(OBJECTS) -o $@ $(LIBS)
+
+# Compilar .cpp → .o
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -I$(INCDIR) -c $< -o $@
 
+# Limpiar objetos y binario
 clean:
-	del /Q *.o $(SRCDIR)\*.o $(TARGET) 2>nul || true
+	rm -f *.o
+	rm -f $(SRCDIR)/*.o
+	rm -f $(TARGET)
 
-.PHONY: clean debug
+.PHONY: clean debug release all

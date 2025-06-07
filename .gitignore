@@ -32,7 +32,7 @@
 *.out
 *.app
 nul
-
+bin
 ### CMake ###
 CMakeLists.txt.user
 CMakeCache.txt
