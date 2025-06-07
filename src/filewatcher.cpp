@@ -1,5 +1,7 @@
 #include "FileWatcher.h"
+#include "../include/log.h"
 #include <iostream>
+#include <format>
 
 FileWatcher::FileWatcher(const std::string& path) {
     if (!path.empty()) {
@@ -21,7 +23,7 @@ bool FileWatcher::scanDirectoryRecursive(const std::string& path) {
     HANDLE h_find = FindFirstFile(search_path.c_str(), &find_data);
 
     if (h_find == INVALID_HANDLE_VALUE) {
-        std::cerr << "Error scanning directory: " << GetLastError() << std::endl;
+        Log::warn(std::format("Error leyendo el directorio por defecto [public] ",  GetLastError()));
         return false;
     }
 

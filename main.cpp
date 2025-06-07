@@ -136,7 +136,11 @@ int main()
     Log::debug(std::format("Servidor activo en http://localhost:{}", std::to_string(port_int)));
 
     std::string api_root_path = config.get("api_root", "api_resources");
-    apiHandler.setup_dynamic_api_endpoints(api_root_path);
+    try {
+        apiHandler.setup_dynamic_api_endpoints(api_root_path);
+    }catch (const std::exception& e) {
+        Log::warn(e.what());
+    }
 
     while (true)
     {
@@ -245,15 +249,12 @@ int main()
 
                 response =
                     "HTTP/1.1 200 OK\r\n"
-                    "Content-Type: " +
-                    content_type + "\r\n"
-                                   "Content-Length: " +
-                    std::to_string(body.size()) + "\r\n"
-                                                  "Connection: close\r\n"
-                                                  "Server: " +
-                    config.get("server_name", "kity/1.0\r\n") + "\r\n"
-                                                                "X-Powered-By: Frankity\r\n"
-                                                                "\r\n" +
+                    "Content-Type: " + content_type + "\r\n"
+                    "Content-Length: " + std::to_string(body.size()) + "\r\n"
+                    "Connection: close\r\n"
+                    "Server: " + config.get("server_name", "Locally/1.0") + "\r\n"
+                    "X-Powered-By: Frankity\r\n"
+                    "\r\n" +
                     body;
                 Log::info(method + " " + path + " from " + clientIP + ":" + std::to_string(clientPort));
             }
@@ -263,12 +264,11 @@ int main()
                 response =
                     "HTTP/1.1 404 Not Found\r\n"
                     "Content-Type: text/html\r\n"
-                    "Content-Length: " +
-                    std::to_string(not_found.size()) + "\r\n"
-                                                       "Connection: close\r\n"
-                                                       "Server: kity/1.0\r\n"
-                                                       "X-Powered-By: Frankity\r\n"
-                                                       "\r\n" +
+                    "Content-Length: " + std::to_string(not_found.size()) + "\r\n"
+                    "Connection: close\r\n"
+                    "Server: " + config.get("server_name", "Locally/1.0") + "\r\n"
+                    "X-Powered-By: Frankity\r\n"
+                    "\r\n" +
                     not_found;
                 Log::error(method + " " + path + " from " + clientIP + ":" + std::to_string(clientPort));
             }
