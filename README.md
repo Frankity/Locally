@@ -1,17 +1,17 @@
-# Locally - Servidor HTTP ligero
+# Locally - Lightweight HTTP Server
 
-Locally es un servidor HTTP ligero escrito en C++ que permite servir archivos estáticos, exponer endpoints de API basados en archivos JSON y soporta recarga en vivo (live reload) para desarrollo web.
+Locally is a lightweight HTTP server written in C++ that allows you to serve static files, expose API endpoints based on JSON files, and supports live reload for web development.
 
-## Características
+## Features
 
-- Servidor HTTP simple y rápido.
-- Soporte para WebSocket y recarga en vivo de páginas HTML.
-- Configuración flexible mediante archivo `config.txt`.
-- Endpoints de API dinámicos basados en archivos `.json`.
-- Registro de logs en consola con diferentes niveles (info, warn, error, debug).
-- Observador de archivos para detectar cambios en el directorio público.
+- Simple and fast HTTP server.
+- WebSocket support and live reload for HTML pages.
+- Flexible configuration via `config.txt` file.
+- Dynamic API endpoints based on `.json` files.
+- Console logging with different levels (info, warn, error, debug).
+- File watcher to detect changes in the public directory.
 
-## Estructura del proyecto
+## Project Structure
 
 ```
 .
@@ -25,64 +25,64 @@ Locally es un servidor HTTP ligero escrito en C++ que permite servir archivos es
 └── .vscode/
 ```
 
-## Requisitos
+## Requirements
 
-- Windows (usa WinSock2 y API de Windows)
-- [MinGW](https://www.mingw-w64.org/) o MSYS2 para compilar
-- OpenSSL para soporte de WebSocket (SHA1 y Base64)
-- Editor recomendado: Visual Studio Code
+- Windows (uses WinSock2 and Windows API)
+- [MinGW](https://www.mingw-w64.org/) or MSYS2 for compilation
+- OpenSSL for WebSocket support (SHA1 and Base64)
+- Recommended editor: Visual Studio Code
 
-## Instalación y uso
+## Installation and Usage
 
-1. **Clona el repositorio**  
+1. **Clone the repository**  
    `git clone https://github.com/Frankity/Locally.git`
 
-2. **Instala dependencias**  
-   Asegúrate de tener MinGW/MSYS2 y OpenSSL instalados.
+2. **Install dependencies**  
+   Make sure you have MinGW/MSYS2 and OpenSSL installed.
 
-3. **Compila el proyecto**  
-   Puedes usar el makefile:
+3. **Compile the project**  
+   You can use the makefile:
    ```sh
    mingw32-make
    ```
-   O desde VSCode usando la tarea `build`.
+   Or from VSCode using the `build` task.
 
-4. **Configura el servidor**  
-   Edita el archivo `config.txt` para ajustar el puerto, rutas y otras opciones.
+4. **Configure the server**  
+   Edit the `config.txt` file to adjust the port, paths, and other options.
 
-5. **Ejecuta el servidor**  
+5. **Run the server**  
    ```sh
    ./locally.exe
    ```
 
-6. **Accede desde tu navegador**  
-   Abre [http://localhost:9090](http://localhost:9090) (o el puerto configurado).
+6. **Access from your browser**  
+   Open [http://localhost:9090](http://localhost:9090) (or the configured port).
 
-## Configuración
+## Configuration
 
-El archivo `config.txt` permite definir:
+The `config.txt` file allows you to define:
 
-- `port`: Puerto del servidor (por defecto 9090)
-- `document_root`: Carpeta pública para archivos estáticos
-- `api_root`: Carpeta donde están los endpoints de la API (archivos JSON)
-- `live_reload`: Habilita/deshabilita recarga en vivo (`true`/`false`)
-- `server_name`: Nombre del servidor
-- `log_level`: Nivel de logs (`debug`, `info`, etc.)
+- `port`: Server port (default 9090)
+- `document_root`: Public folder for static files
+- `api_root`: Folder where API endpoints are located (JSON files)
+- `live_reload`: Enable/disable live reload (`true`/`false`)
+- `server_name`: Server name
+- `log_level`: Log level (`debug`, `info`, etc.)
 
 ## API
 
-Los endpoints de la API se definen como archivos `.json` en la carpeta configurada (`api_root`).  
-Puedes hacer peticiones GET a `/api/<nombre>` y filtrar resultados usando parámetros de consulta.
+API endpoints are defined as `.json` files in the configured folder (`api_root`).  
+You can make GET requests to `/api/<name>` and filter results using query parameters.
 
-Ejemplo:
+Example:
 ```
-GET /api/products?category=teclado
+GET /api/products?category=keyboard
 ```
 
-## Licencia
+## License
 
 MIT
 
 ---
 
-Desarrollado por **Douglas Brunal**
+Developed by **Douglas Brunal**

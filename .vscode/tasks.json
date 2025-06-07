@@ -17,6 +17,7 @@
                 "src/filewatcher.cpp",
                 "src/apihandler.cpp",
                 "src/websocket.cpp",
+                "src/server.cpp",
                 "-o",
                 "locally.exe",
                 "-lws2_32",

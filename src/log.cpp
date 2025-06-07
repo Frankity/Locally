@@ -5,6 +5,7 @@
 #include <sstream>
 #include <ctime>
 #include <iomanip>
+#include <mutex>
 
 #define COLOR_RESET "\033[0m"
 #define COLOR_RED "\033[31m"
@@ -18,13 +19,19 @@ void Log::warn(const std::string &msg) { log(LogLevel::WRN, msg); }
 void Log::error(const std::string &msg) { log(LogLevel::ERR, msg); }
 void Log::debug(const std::string &msg) { log(LogLevel::DBG, msg); }
 
+namespace {
+    static std::mutex log_mutex;
+}
+
 void Log::log(LogLevel level, const std::string &msg)
 {
+    std::lock_guard<std::mutex> lock(log_mutex);
+
     std::string timestamp = get_timestamp();
     std::string levelStr = level_to_string(level);
     std::string color = color_for_level(level);
 
-    std::cout << color << "[" << timestamp << "] [" << levelStr<<"] " << msg << COLOR_RESET << std::endl;
+    std::cout << color << "[" << Log::get_timestamp() << "] [" << levelStr << "] " << msg << COLOR_RESET << std::endl;
 }
 
 std::string Log::get_timestamp()
