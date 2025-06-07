@@ -12,7 +12,7 @@
             "environment": [],
             "externalConsole": true,
             "MIMode": "gdb",
-            "miDebuggerPath": "gdb.exe", // ⬅️ Ajusta según tu instalación
+            "miDebuggerPath": "gdb.exe",
             "setupCommands": [
                 {
                     "description": "Habilitar impresión bonita (pretty printing)",
