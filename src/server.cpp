@@ -14,6 +14,12 @@
 Server::Server(const std::string &configPath)
     : config(configPath)
 {
+
+    if (!config.load())
+    {
+        Log::warn("Error loading config, using default values");
+    }
+
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
     {

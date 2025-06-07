@@ -1,8 +1,10 @@
 #include "../include/config.h"
+#include "../include/log.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include <format>
 
 Config::Config(const std::string &filename) : filename_(filename) {}
 
@@ -11,7 +13,7 @@ bool Config::load()
     std::ifstream file(filename_);
     if (!file.is_open())
     {
-        std::cerr << "No se pudo abrir el archivo de configuración: " << filename_ << std::endl;
+        Log::warn(std::format("Config file could not be loaded: {}", filename_ ));
         return false;
     }
 
@@ -21,7 +23,7 @@ bool Config::load()
     
     if (file_size == 0)
     {
-        std::cerr << "El archivo de configuración está vacío: " << filename_ << std::endl;
+        Log::warn(std::format("Config file is empty: {}", filename_));
         return false;
     }
     
@@ -43,8 +45,7 @@ bool Config::load()
         size_t pos = line.find('=');
         if (pos == std::string::npos)
         {
-            std::cerr << "Línea " << line_number << " mal formateada en " << filename_ 
-                      << ": " << line << std::endl;
+            Log::warn(std::format("Line {} is wrongly formatted in {} at line {}", line_number, filename_, line));
             continue;
         }
 
@@ -61,7 +62,7 @@ bool Config::load()
     }
 
     file.close();
-    std::cout << "Configuración cargada: " << values_.size() << " parámetros desde " << filename_ << std::endl;
+    Log::info(std::format("Config loaded: {} parametters from {}", values_.size(), filename_));
     return true;
 }
 
@@ -84,7 +85,7 @@ int Config::getInt(const std::string &key, int defaultValue) const
     try {
         return std::stoi(value);
     } catch (const std::exception&) {
-        std::cerr << "Error convirtiendo '" << value << "' a entero para clave '" << key << "'" << std::endl;
+        Log::warn(std::format("Error transforming '{}' to int '{}'", value, key));
         return defaultValue;
     }
 }
@@ -109,7 +110,7 @@ bool Config::hasKey(const std::string &key) const
 
 void Config::printAll() const
 {
-    std::cout << "Configuración cargada desde " << filename_ << ":" << std::endl;
+    Log::info(std::format("Config loaded from {}", filename_));
     for (const auto& pair : values_)
     {
         std::cout << "  " << pair.first << " = " << pair.second << std::endl;
