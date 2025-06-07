@@ -9,18 +9,17 @@
 #include <algorithm>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <format>
 #include <unordered_map>
-#include <openssl/sha.h>
-#include <openssl/bio.h>
-#include <openssl/evp.h>
-#include <openssl/buffer.h>
+
+
 #include "./include/log.h"
 #include "./include/config.h"
 #include "./include/utils.h"
+#include "./include/websocket.h"
 #include "./include/filewatcher.h"
 #include "./include/apihandler.h"
 
-// #pragma comment(lib, "ws2_32.lib") // Solo Visual Studio, ignorado por MinGW
 std::string read_file(const std::string &path)
 {
     std::ifstream file(path, std::ios::binary);
@@ -37,47 +36,6 @@ std::mutex clients_mutex;
 bool isWebSocketRequest(const std::string &request)
 {
     return request.find("Upgrade: websocket") != std::string::npos;
-}
-
-std::string base64_encode(const unsigned char *input, int length)
-{
-    BIO *bio, *b64;
-    BUF_MEM *bufferPtr;
-
-    b64 = BIO_new(BIO_f_base64());
-    bio = BIO_new(BIO_s_mem());
-    bio = BIO_push(b64, bio);
-
-    BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL);
-    BIO_write(bio, input, length);
-    BIO_flush(bio);
-    BIO_get_mem_ptr(bio, &bufferPtr);
-
-    std::string result(bufferPtr->data, bufferPtr->length);
-    BIO_free_all(bio);
-
-    return result;
-}
-
-std::string getWebSocketKey(const std::string &request)
-{
-    size_t key_start = request.find("Sec-WebSocket-Key: ");
-    if (key_start == std::string::npos)
-        return "";
-    key_start += 19;
-    size_t key_end = request.find("\r\n", key_start);
-    return request.substr(key_start, key_end - key_start);
-}
-
-std::string generateWebSocketAccept(const std::string &key)
-{
-    const std::string magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-    std::string combined = key + magic;
-
-    unsigned char sha1[20];
-    SHA1(reinterpret_cast<const unsigned char *>(combined.c_str()), combined.size(), sha1);
-
-    return base64_encode(sha1, 20);
 }
 
 std::string get_mime_type(const std::string &path)
@@ -109,49 +67,18 @@ std::string get_request_path(const std::string &req)
     return (path == "/") ? "/index.html" : path;
 }
 
-bool sendWebSocketMessage(SOCKET client, const std::string &message)
-{
-    try
-    {
-        std::vector<unsigned char> frame;
-        frame.push_back(0x81);
-
-        if (message.size() <= 125)
-        {
-            frame.push_back(static_cast<unsigned char>(message.size()));
-        }
-        else if (message.size() <= 65535)
-        {
-            frame.push_back(126);
-            frame.push_back(static_cast<unsigned char>((message.size() >> 8) & 0xFF));
-            frame.push_back(static_cast<unsigned char>(message.size() & 0xFF));
-        }
-        else
-        {
-            return false;
-        }
-
-        frame.insert(frame.end(), message.begin(), message.end());
-
-        return send(client, reinterpret_cast<const char *>(frame.data()), frame.size(), 0) > 0;
-    }
-    catch (...)
-    {
-        return false;
-    }
-}
-
 int main()
 {
 
     SetConsoleTitleW(L"Locally - Small Server");
 
     ApiHandler apiHandler;
+    WebSocket webSocket;
 
     Config config("config.txt");
     if (!config.load())
     {
-        std::cerr << "Error cargando configuración, usando valores por defecto" << std::endl;
+        Log::warn("Error cargando configuración, usando valores por defecto");
     }
 
     bool enable_live_reload = config.getBool("live_reload", true); // Valor por defecto true
@@ -173,7 +100,7 @@ int main()
                     for (auto it = websocket_clients.begin(); it != websocket_clients.end();) {
                         SOCKET ws_client = *it;
                         
-                        if (!sendWebSocketMessage(ws_client, "reload")) {
+                        if (!webSocket.sendWebSocketMessage(ws_client, "reload")) {
                             closesocket(ws_client);
                             it = websocket_clients.erase(it);
                         } else {
@@ -206,7 +133,10 @@ int main()
     bind(server, (sockaddr *)&addr, sizeof(addr));
     listen(server, SOMAXCONN);
 
-    Log::debug("Servidor activo en http://localhost:" + std::to_string(port_int));
+    Log::debug(std::format("Servidor activo en http://localhost:{}", std::to_string(port_int)));
+
+    std::string api_root_path = config.get("api_root", "api_resources");
+    apiHandler.setup_dynamic_api_endpoints(api_root_path);
 
     while (true)
     {
@@ -238,9 +168,6 @@ int main()
         std::istringstream iss(request);
         std::string method;
         iss >> method;
-
-        std::string api_root_path = config.get("api_root", "api_resources");
-        apiHandler.setup_dynamic_api_endpoints(api_root_path);
 
         if (path.find("/api/") == 0)
         {
@@ -274,10 +201,10 @@ int main()
 
         if (enable_live_reload && request.find("Upgrade: websocket") != std::string::npos)
         {
-            std::string key = getWebSocketKey(request);
+            std::string key = WebSocket::getWebSocketKey(request);
             if (!key.empty())
             {
-                std::string accept_key = generateWebSocketAccept(key);
+                std::string accept_key = WebSocket::generateWebSocketAccept(key);
                 std::string response =
                     "HTTP/1.1 101 Switching Protocols\r\n"
                     "Upgrade: websocket\r\n"

@@ -1,10 +1,12 @@
 #include "../include/apihandler.h"
+#include "../include/log.h"
 #include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
 #include <cctype>
+#include <format>
 
 namespace fs = std::filesystem;
 
@@ -158,11 +160,11 @@ std::string ApiHandler::url_decode(const std::string &str)
 // Carga endpoints dinámicos (placeholder para lógica futura)
 void ApiHandler::setup_dynamic_api_endpoints(const std::string &api_root_path) const
 {
-    std::cout << "Cargando endpoints desde: " << api_root_path << std::endl;
+    Log::info(std::format("Cargando endpoints desde: {}", api_root_path));
 
     for (const auto &file : fs::directory_iterator(api_root_path)) {
         if (file.path().extension() == ".json") {
-            std::cout << "-> API disponible: " << file.path().filename().string() << std::endl;
+            Log::info(std::format("API disponible: {}",  file.path().filename().string()));
         }
     }
 }
