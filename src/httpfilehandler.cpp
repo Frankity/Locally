@@ -37,7 +37,7 @@ std::string readFile(const std::string& path) {
 void HttpFileHandler::serveFile(SOCKET client, const std::string& path, const Config& config, const std::string& clientIP) {
     std::string body = readFile(path);
     std::string response;
-    std::string method = "GET"; // Puedes ajustar si necesitas soportar otros métodos
+    std::string method = "GET";
 
     if (!body.empty()) {
         std::string content_type = getMimeType(path);

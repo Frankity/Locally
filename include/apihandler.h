@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <winsock2.h>
+#include "config.h"
 
 class ApiHandler
 {
@@ -14,6 +16,8 @@ public:
         const std::string &api_root,
         const std::unordered_map<std::string, std::string> &params = {}
     );
+
+    static void serveApi(SOCKET client, const std::string& path, const Config& config, const std::string& clientIP);
 
     static std::unordered_map<std::string, std::string> parse_query_params(
         const std::string &query);

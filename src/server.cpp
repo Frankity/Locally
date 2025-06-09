@@ -1,4 +1,3 @@
-
 #include "../include/server.h"
 #include "../include/httpfilehandler.h"
 #include "../include/log.h"
@@ -68,8 +67,9 @@ void Server::acceptConnections()
 {
     sockaddr_in clientAddr;
     int addrLen = sizeof(clientAddr);
+    std::atomic<bool> running{true};
 
-    while (true)
+    while (running)
     {
         SOCKET client = accept(serverSocket, (sockaddr *)&clientAddr, &addrLen);
         if (client == INVALID_SOCKET)
@@ -116,5 +116,11 @@ void Server::handleClient(SOCKET client, sockaddr_in clientAddr)
     std::string path = Server::getRequestPath(request);
     std::string full_path = config.get("document_root", "public") + path;
 
-    HttpFileHandler::serveFile(client, full_path, config, clientIP);
+    if (path.starts_with("/api/")) {
+        ApiHandler::serveApi(client, path, config, clientIP);
+        return;
+    }else {
+        HttpFileHandler::serveFile(client, full_path, config, clientIP);
+    }
+
 }

@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <cctype>
 #include <format>
+#include <winsock2.h>
 
 namespace fs = std::filesystem;
 
@@ -157,7 +158,6 @@ std::string ApiHandler::url_decode(const std::string &str)
         return result;
 }
 
-// Carga endpoints dinámicos (placeholder para lógica futura)
 void ApiHandler::setup_dynamic_api_endpoints(const std::string &api_root_path) const
 {
     Log::info(std::format("Cargando endpoints desde: {}", api_root_path));
@@ -167,4 +167,37 @@ void ApiHandler::setup_dynamic_api_endpoints(const std::string &api_root_path) c
             Log::info(std::format("API disponible: {}",  file.path().filename().string()));
         }
     }
+}
+
+void ApiHandler::serveApi(SOCKET client, const std::string& path, const Config& config, const std::string& clientIP)
+{
+    std::string api_root = config.get("api_root", "api");
+    std::string resource = path.substr(5);
+    if (resource.starts_with("/")) resource = resource.substr(1);
+    if (resource.empty()) resource = "index";
+    std::string json_path = api_root + "/" + resource + ".json";
+    Log::info(std::format("{} {} from {}", "GET", path, clientIP));
+    std::ifstream file(json_path, std::ios::binary);
+    if (file) {
+        std::ostringstream ss;
+        ss << file.rdbuf();
+        std::string body = ss.str();
+        std::string response =
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: application/json\r\n"
+            "Content-Length: " + std::to_string(body.size()) + "\r\n"
+            "Connection: close\r\n"
+            "\r\n" + body;
+        send(client, response.c_str(), response.size(), 0);
+    } else {
+        std::string notFound =
+            "HTTP/1.1 404 Not Found\r\n"
+            "Content-Type: application/json\r\n"
+            "Content-Length: 17\r\n"
+            "Connection: close\r\n"
+            "\r\n"
+            "{\"error\":404}\n";
+        send(client, notFound.c_str(), notFound.size(), 0);
+    }
+    closesocket(client);
 }
