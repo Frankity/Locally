@@ -7,7 +7,27 @@
 #include <iomanip>
 #include <cctype>
 #include <format>
-#include <winsock2.h>
+#
+#ifdef _WIN32
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    typedef SOCKET socket_t;
+    #define CLOSESOCKET closesocket
+    #define SOCK_ERR INVALID_SOCKET
+    #define SOCK_INIT()  WSADATA wsaData; WSAStartup(MAKEWORD(2,2), &wsaData)
+    #define SOCK_CLEAN() WSACleanup()
+#else
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <unistd.h>
+    typedef int socket_t;
+    #define CLOSESOCKET close
+    #define SOCK_ERR -1
+    #define SOCK_INIT()
+    #define SOCK_CLEAN()
+#endif
 
 namespace fs = std::filesystem;
 
@@ -169,7 +189,7 @@ void ApiHandler::setup_dynamic_api_endpoints(const std::string &api_root_path) c
     }
 }
 
-void ApiHandler::serveApi(SOCKET client, const std::string& path, const Config& config, const std::string& clientIP)
+void ApiHandler::serveApi(socket_t client, const std::string& path, const Config& config, const std::string& clientIP)
 {
     std::string api_root = config.get("api_root", "api");
     std::string resource = path.substr(5);
@@ -199,5 +219,5 @@ void ApiHandler::serveApi(SOCKET client, const std::string& path, const Config& 
             "{\"error\":404}\n";
         send(client, notFound.c_str(), notFound.size(), 0);
     }
-    closesocket(client);
+    CLOSESOCKET(client);
 }

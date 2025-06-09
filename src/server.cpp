@@ -1,14 +1,33 @@
 #include "../include/server.h"
 #include "../include/httpfilehandler.h"
 #include "../include/log.h"
-#include <winsock2.h>
 #include <iostream>
 #include <thread>
 #include <atomic>
 #include <sstream>
 #include <fstream>
-#include <ws2tcpip.h>
 #include <format>
+
+#ifdef _WIN32
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    typedef SOCKET socket_t;
+    #define CLOSESOCKET closesocket
+    #define SOCK_ERR INVALID_SOCKET
+    #define SOCK_INIT()  WSADATA wsaData; WSAStartup(MAKEWORD(2,2), &wsaData)
+    #define SOCK_CLEAN() WSACleanup()
+#else
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <unistd.h>
+    typedef int socket_t;
+    #define CLOSESOCKET close
+    #define SOCK_ERR -1
+    #define SOCK_INIT()
+    #define SOCK_CLEAN()
+#endif
 
 Server::Server(const std::string &configPath)
     : config(configPath)
@@ -27,10 +46,10 @@ Server::Server(const std::string &configPath)
     }
 
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSocket == INVALID_SOCKET)
+    if (serverSocket == SOCK_ERR)
     {
         Log::error("Error creating socket");
-        WSACleanup();
+        SOCK_CLEAN();
         exit(1);
     }
 
@@ -45,15 +64,15 @@ Server::Server(const std::string &configPath)
     {
         Log::error("Error binding socket");
         closesocket(serverSocket);
-        WSACleanup();
+        SOCK_CLEAN();
         exit(1);
     }
 
     if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR)
     {
         std::cerr << "Listen failed\n";
-        closesocket(serverSocket);
-        WSACleanup();
+        CLOSESOCKET(serverSocket);
+        SOCK_CLEAN();
         exit(1);
     }
 }
