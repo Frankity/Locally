@@ -5,7 +5,7 @@
 
 uint16_t stringToUint16(const std::string& str) {
     try {
-        unsigned long value = std::stoul(str);
+        const unsigned long value = std::stoul(str);
 
         if (value > std::numeric_limits<uint16_t>::max()) {
             throw std::out_of_range("Valor fuera de rango para uint16_t");

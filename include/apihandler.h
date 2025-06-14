@@ -24,9 +24,15 @@ public:
 
     static std::vector<std::string> list_json_files(const std::string &path);
 
+    static std::string compress_response(const std::string& data);
+
     static std::string url_decode(const std::string &str);
 
-    void setup_dynamic_api_endpoints(const std::string &api_root_path) const;
+    static void setup_dynamic_api_endpoints(const std::string &api_root_path);
+
+    //static void setup_dynamic_api_endpoints(const std::string &api_root_path);
+
+    //void setup_dynamic_api_endpoints(const std::string &api_root_path) const;
 };
 
 #endif

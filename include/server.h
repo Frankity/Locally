@@ -1,6 +1,9 @@
+#ifndef SERVER_H
+#define SERVER_H
+
 #pragma once
 #include "config.h"
-#include "apihandler.h"
+#include <apihandler.h>
 #include "websocket.h"
 #include "filewatcher.h"
 #include <mutex>
@@ -9,14 +12,15 @@
 class Server
 {
 public:
-    Server(const std::string &configPath);
+    explicit Server(const std::string &configPath);
     void run();
 
 private:
     void acceptConnections();
-    void handleClient(SOCKET client, sockaddr_in clientAddr);
-    std::string getRequestPath(const std::string &req);
-    std::string readFile(const std::string &path);
+    void handleClient(SOCKET client, sockaddr_in clientAddr) const;
+
+    static std::string getRequestPath(const std::string &req);
+    static std::string readFile(const std::string &path);
     std::string getMimeType(const std::string &path);
 
     Config config;
@@ -28,3 +32,5 @@ private:
     std::vector<SOCKET> ws_clients;
 
 };
+
+#endif

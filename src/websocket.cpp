@@ -2,23 +2,23 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <openssl/sha.h>
 #include <openssl/bio.h>
-#include <openssl/evp.h>
 #include <openssl/buffer.h>
+#include <openssl/evp.h>
+#include <openssl/sha.h>
 
 
-WebSocket::WebSocket() {}
+WebSocket::WebSocket() = default;
 
 std::string WebSocket::getWebSocketKey(const std::string &request){
     size_t key_start = request.find("Sec-WebSocket-Key: ");
     if (key_start == std::string::npos) return "";
     key_start += 19;
-    size_t key_end = request.find("\r\n", key_start);
+    const size_t key_end = request.find("\r\n", key_start);
     return request.substr(key_start, key_end - key_start);
 }
 
-bool WebSocket::sendWebSocketMessage(SOCKET client, const std::string &message)
+bool WebSocket::sendWebSocketMessage(const SOCKET client, const std::string &message)
 {
     try
     {

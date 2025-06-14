@@ -1,5 +1,5 @@
-#include "FileWatcher.h"
-#include "../include/log.h"
+#include <filewatcher.h>
+#include <log.h>
 #include <iostream>
 #include <format>
 
@@ -9,7 +9,7 @@ FileWatcher::FileWatcher(const std::string& path) {
     }
 }
 
-FileWatcher::~FileWatcher() {}
+FileWatcher::~FileWatcher() = default;
 
 void FileWatcher::setWatchPath(const std::string& path) {
     watch_path_ = path;
@@ -19,8 +19,8 @@ void FileWatcher::setWatchPath(const std::string& path) {
 
 bool FileWatcher::scanDirectoryRecursive(const std::string& path) {
     WIN32_FIND_DATA find_data;
-    std::string search_path = path + "\\*";
-    HANDLE h_find = FindFirstFile(search_path.c_str(), &find_data);
+    const std::string search_path = path + "\\*";
+    const HANDLE h_find = FindFirstFile(search_path.c_str(), &find_data);
 
     if (h_find == INVALID_HANDLE_VALUE) {
         Log::warn(std::format("Error leyendo el directorio por defecto [public] ",  GetLastError()));

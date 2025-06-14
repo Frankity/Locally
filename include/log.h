@@ -1,3 +1,6 @@
+#ifndef LOG_H
+#define LOG_H
+
 #pragma once
 #include <string>
 
@@ -23,3 +26,5 @@ private:
     static std::string level_to_string(LogLevel level);
     static std::string color_for_level(LogLevel level);
 };
+
+#endif
