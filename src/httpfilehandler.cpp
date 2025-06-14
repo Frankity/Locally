@@ -1,5 +1,5 @@
-#include "../include/httpfilehandler.h"
-#include "../include/log.h"
+#include <httpfilehandler.h>
+#include <log.h>
 #include <winsock2.h>
 #include <fstream>
 #include <sstream>
@@ -22,8 +22,8 @@ std::string getMimeType(const std::string &path)
     size_t dot = path.find_last_of('.');
     if (dot == std::string::npos)
         return "application/octet-stream";
-    std::string ext = path.substr(dot);
-    return types.count(ext) ? types[ext] : "application/octet-stream";
+    const std::string ext = path.substr(dot);
+    return types.contains(ext) ? types[ext] : "application/octet-stream";
 }
 
 std::string readFile(const std::string& path) {
@@ -34,13 +34,13 @@ std::string readFile(const std::string& path) {
     return ss.str();
 }
 
-void HttpFileHandler::serveFile(SOCKET client, const std::string& path, const Config& config, const std::string& clientIP) {
-    std::string body = readFile(path);
+void HttpFileHandler::serveFile(const SOCKET client, const std::string& path, const Config& config, const std::string& clientIP) {
+    const std::string body = readFile(path);
     std::string response;
     std::string method = "GET";
 
     if (!body.empty()) {
-        std::string content_type = getMimeType(path);
+        const std::string content_type = getMimeType(path);
         response =
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: " + content_type + "\r\n"
@@ -53,7 +53,7 @@ void HttpFileHandler::serveFile(SOCKET client, const std::string& path, const Co
         Log::info(std::format("{} {} from {}", method, path, clientIP));
         send(client, response.c_str(), response.size(), 0);
     } else {
-        std::string notFound =
+        const std::string notFound =
             "HTTP/1.1 404 Not Found\r\n"
             "Content-Type: text/html\r\n"
             "Content-Length: 13\r\n"

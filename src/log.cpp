@@ -1,5 +1,4 @@
-#include "../include/log.h"
-
+#include <log.h>
 #include <iostream>
 #include <chrono>
 #include <sstream>
@@ -20,25 +19,25 @@ void Log::error(const std::string &msg) { log(LogLevel::ERR, msg); }
 void Log::debug(const std::string &msg) { log(LogLevel::DBG, msg); }
 
 namespace {
-    static std::mutex log_mutex;
+    std::mutex log_mutex;
 }
 
-void Log::log(LogLevel level, const std::string &msg)
+void Log::log(const LogLevel level, const std::string &msg)
 {
     std::lock_guard<std::mutex> lock(log_mutex);
 
     std::string timestamp = get_timestamp();
-    std::string levelStr = level_to_string(level);
-    std::string color = color_for_level(level);
+    const std::string levelStr = level_to_string(level);
+    const std::string color = color_for_level(level);
 
     std::cout << color << "[" << Log::get_timestamp() << "] [" << levelStr << "] " << msg << COLOR_RESET << std::endl;
 }
 
 std::string Log::get_timestamp()
 {
-    auto now = std::chrono::system_clock::now();
+    const auto now = std::chrono::system_clock::now();
     auto t = std::chrono::system_clock::to_time_t(now);
-    std::tm tm;
+    std::tm tm{};
 
 #ifdef _WIN32
     localtime_s(&tm, &t);
@@ -50,7 +49,7 @@ std::string Log::get_timestamp()
     return ss.str();
 }
 
-std::string Log::level_to_string(LogLevel level)
+std::string Log::level_to_string(const LogLevel level)
 {
     switch (level)
     {
@@ -66,7 +65,7 @@ std::string Log::level_to_string(LogLevel level)
     return "UNKNOWN";
 }
 
-std::string Log::color_for_level(LogLevel level)
+std::string Log::color_for_level(const LogLevel level)
 {
     switch (level)
     {

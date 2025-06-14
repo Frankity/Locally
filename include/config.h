@@ -13,7 +13,7 @@ private:
     std::string trim(const std::string& str) const;
 
 public:
-    Config(const std::string &filename);
+    explicit Config(std::string filename);
     bool load();
     std::string get(const std::string &key, const std::string &defaultValue = "") const;
     

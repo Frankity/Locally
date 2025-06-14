@@ -1,12 +1,13 @@
-#include "../include/config.h"
-#include "../include/log.h"
+#include <config.h>
+#include <log.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <algorithm>
 #include <format>
+#include <utility>
 
-Config::Config(const std::string &filename) : filename_(filename) {}
+Config::Config(std::string filename) : filename_(std::move(filename)) {}
 
 bool Config::load()
 {
@@ -17,17 +18,14 @@ bool Config::load()
         return false;
     }
 
-    // Verificar si el archivo tiene contenido
     file.seekg(0, std::ios::end);
-    std::streampos file_size = file.tellg();
-    
-    if (file_size == 0)
+
+    if (std::streampos file_size = file.tellg(); file_size == 0)
     {
         Log::warn(std::format("Config file is empty: {}", filename_));
         return false;
     }
     
-    // Volver al inicio del archivo
     file.seekg(0, std::ios::beg);
 
     std::string line;
@@ -38,7 +36,6 @@ bool Config::load()
         line_number++;
         line = trim(line);
         
-        // Ignorar líneas vacías y comentarios
         if (line.empty() || line[0] == '#')
             continue;
 
@@ -50,7 +47,7 @@ bool Config::load()
         }
 
         std::string key = trim(line.substr(0, pos));
-        std::string value = trim(line.substr(pos + 1));
+        const std::string value = trim(line.substr(pos + 1));
 
         if (key.empty())
         {
@@ -68,15 +65,14 @@ bool Config::load()
 
 std::string Config::get(const std::string &key, const std::string &defaultValue) const
 {
-    auto it = values_.find(key);
-    if (it != values_.end())
+    if (const auto it = values_.find(key); it != values_.end())
     {
         return it->second;
     }
     return defaultValue;
 }
 
-int Config::getInt(const std::string &key, int defaultValue) const
+int Config::getInt(const std::string &key, const int defaultValue) const
 {
     std::string value = get(key);
     if (value.empty())
@@ -90,39 +86,39 @@ int Config::getInt(const std::string &key, int defaultValue) const
     }
 }
 
-bool Config::getBool(const std::string &key, bool defaultValue) const
+bool Config::getBool(const std::string &key, const bool defaultValue) const
 {
-    std::string value = get(key);
+    const std::string value = get(key);
     if (value.empty())
         return defaultValue;
     
     // Convertir a minúsculas para comparación
     std::string lower_value = value;
-    std::transform(lower_value.begin(), lower_value.end(), lower_value.begin(), ::tolower);
+    std::ranges::transform(lower_value, lower_value.begin(), ::tolower);
     
     return (lower_value == "true" || lower_value == "1" || lower_value == "yes" || lower_value == "on");
 }
 
 bool Config::hasKey(const std::string &key) const
 {
-    return values_.find(key) != values_.end();
+    return values_.contains(key);
 }
 
 void Config::printAll() const
 {
     Log::info(std::format("Config loaded from {}", filename_));
-    for (const auto& pair : values_)
+    for (const auto&[fst, snd] : values_)
     {
-        std::cout << "  " << pair.first << " = " << pair.second << std::endl;
+        std::cout << "  " << fst << " = " << snd << std::endl;
     }
 }
 
 std::string Config::trim(const std::string& str) const
 {
-    size_t start = str.find_first_not_of(" \t\r\n");
+    const size_t start = str.find_first_not_of(" \t\r\n");
     if (start == std::string::npos)
         return "";
-    
-    size_t end = str.find_last_not_of(" \t\r\n");
+
+    const size_t end = str.find_last_not_of(" \t\r\n");
     return str.substr(start, end - start + 1);
 }

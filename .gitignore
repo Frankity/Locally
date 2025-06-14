@@ -46,7 +46,7 @@ CTestTestfile.cmake
 _deps
 api
 public
-config.txt
+assets/config.txt
 
 ### CMake Patch ###
 CMakeUserPresets.json

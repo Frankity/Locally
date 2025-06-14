@@ -60,7 +60,7 @@ Server::Server(const std::string &configPath)
     serverAddr.sin_addr.s_addr = INADDR_ANY;
     serverAddr.sin_port = htons(static_cast<uint16_t>(port_int));
 
-    if (bind(serverSocket, (sockaddr *)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
+    if (bind(serverSocket, reinterpret_cast<sockaddr *>(&serverAddr), sizeof(serverAddr)) == SOCKET_ERROR)
     {
         Log::error("Error binding socket");
         closesocket(serverSocket);
@@ -84,13 +84,13 @@ void Server::run()
 
 void Server::acceptConnections()
 {
-    sockaddr_in clientAddr;
+    sockaddr_in clientAddr{};
     int addrLen = sizeof(clientAddr);
     std::atomic<bool> running{true};
 
     while (running)
     {
-        SOCKET client = accept(serverSocket, (sockaddr *)&clientAddr, &addrLen);
+        SOCKET client = accept(serverSocket, reinterpret_cast<sockaddr *>(&clientAddr), &addrLen);
         if (client == INVALID_SOCKET)
         {
             Log::error("Error accepting new client connection");
@@ -118,26 +118,23 @@ std::string Server::readFile(const std::string &path)
     return ss.str();
 }
 
-void Server::handleClient(SOCKET client, sockaddr_in clientAddr)
-{
+void Server::handleClient(const SOCKET client, const sockaddr_in clientAddr) const {
 
     char clientIP[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(clientAddr.sin_addr), clientIP, INET_ADDRSTRLEN);
 
     char buffer[4096] = {0};
-    int bytesReceived = recv(client, buffer, sizeof(buffer), 0);
-    if (bytesReceived <= 0)
+    if (const int bytesReceived = recv(client, buffer, sizeof(buffer), 0); bytesReceived <= 0)
     {
         closesocket(client);
         return;
     }
-    std::string request(buffer);
-    std::string path = Server::getRequestPath(request);
-    std::string full_path = config.get("document_root", "public") + path;
+    const std::string request(buffer);
+    const std::string path = getRequestPath(request);
+    const std::string full_path = config.get("document_root", "public") + path;
 
     if (path.starts_with("/api/")) {
         ApiHandler::serveApi(client, path, config, clientIP);
-        return;
     }else {
         HttpFileHandler::serveFile(client, full_path, config, clientIP);
     }
